@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#9c88ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Qwixx</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen">
+      <h1>Qwixx</h1>
+      <div class="setup-form">
+        <div class="input-group">
+          <label for="player1-name">Player 1</label>
+          <input type="text" id="player1-name" placeholder="Enter name" maxlength="12">
+        </div>
+        <div class="input-group">
+          <label for="player2-name">Player 2</label>
+          <input type="text" id="player2-name" placeholder="Enter name" maxlength="12">
+        </div>
+        <button id="start-game-btn" class="btn btn-primary">Start Game</button>
+      </div>
+    </div>
+
+    <!-- Resume Modal -->
+    <div id="resume-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Resume Game?</h2>
+        <p>A saved game was found.</p>
+        <div class="modal-buttons">
+          <button id="resume-btn" class="btn btn-primary">Resume</button>
+          <button id="new-game-btn" class="btn btn-secondary">New Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen hidden">
+      <!-- Dice Area -->
+      <div id="dice-area">
+        <div id="dice-container">
+          <div class="dice-row white-dice">
+            <div class="die white" id="die-white1" data-value="1"></div>
+            <div class="die white" id="die-white2" data-value="1"></div>
+          </div>
+          <div class="dice-row colored-dice">
+            <div class="die red" id="die-red" data-value="1"></div>
+            <div class="die yellow" id="die-yellow" data-value="1"></div>
+            <div class="die green" id="die-green" data-value="1"></div>
+            <div class="die blue" id="die-blue" data-value="1"></div>
+          </div>
+        </div>
+        <div id="dice-info">
+          <span id="white-sum">White: --</span>
+        </div>
+        <button id="roll-btn" class="btn btn-roll">Roll Dice</button>
+      </div>
+
+      <!-- Player Sheets -->
+      <div id="players-container">
+        <div class="player-sheet" id="player1-sheet" data-player="0">
+          <div class="player-header">
+            <span class="player-name">Player 1</span>
+            <span class="player-status"></span>
+            <span class="player-score">0</span>
+          </div>
+          <div class="score-rows">
+            <div class="score-row red" data-color="red"></div>
+            <div class="score-row yellow" data-color="yellow"></div>
+            <div class="score-row green" data-color="green"></div>
+            <div class="score-row blue" data-color="blue"></div>
+          </div>
+          <div class="penalties-row">
+            <span class="penalties-label">Penalties:</span>
+            <div class="penalty-boxes"></div>
+          </div>
+          <button class="btn btn-done">Done</button>
+        </div>
+
+        <div class="player-sheet" id="player2-sheet" data-player="1">
+          <div class="player-header">
+            <span class="player-name">Player 2</span>
+            <span class="player-status"></span>
+            <span class="player-score">0</span>
+          </div>
+          <div class="score-rows">
+            <div class="score-row red" data-color="red"></div>
+            <div class="score-row yellow" data-color="yellow"></div>
+            <div class="score-row green" data-color="green"></div>
+            <div class="score-row blue" data-color="blue"></div>
+          </div>
+          <div class="penalties-row">
+            <span class="penalties-label">Penalties:</span>
+            <div class="penalty-boxes"></div>
+          </div>
+          <button class="btn btn-done">Done</button>
+        </div>
+      </div>
+
+      <!-- Game Controls -->
+      <div id="game-controls">
+        <button id="menu-btn" class="btn btn-secondary">New Game</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="screen hidden">
+      <h1>Game Over</h1>
+      <div id="final-scores"></div>
+      <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+    </div>
+  </div>
+
+  <script src="js/game.js"></script>
+  <script src="js/dice.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
