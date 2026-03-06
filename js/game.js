@@ -201,8 +201,12 @@ class QwixxGame {
       const availableViaWhite = matchingOptions.some(opt => opt.isWhiteOnly);
       const availableViaColored = matchingOptions.some(opt => !opt.isWhiteOnly);
 
+      // If colored combo was already used in THIS row, white is not available in this row
+      // (white must come before colored in the same row)
+      const coloredUsedInThisRow = this.turnState.activeColorMark?.color === color;
+
       // Prioritize white slot - this preserves colored combo for numbers that ONLY have colored option
-      if (availableViaWhite && this.turnState.activeWhiteMark === null) {
+      if (availableViaWhite && this.turnState.activeWhiteMark === null && !coloredUsedInThisRow) {
         return true;
       }
 
@@ -239,8 +243,12 @@ class QwixxGame {
     const options = this.getActivePlayerOptions();
     const matchingOptions = options.filter(opt => opt.color === color && opt.value === value);
 
+    // If colored combo was already used in THIS row, white is not available in this row
+    const coloredUsedInThisRow = this.turnState.activeColorMark?.color === color;
+
     const canUseWhite = matchingOptions.some(opt => opt.isWhiteOnly) &&
-                        this.turnState.activeWhiteMark === null;
+                        this.turnState.activeWhiteMark === null &&
+                        !coloredUsedInThisRow;
     const canUseColored = matchingOptions.some(opt => !opt.isWhiteOnly) &&
                           this.turnState.activeColorMark === null;
 
