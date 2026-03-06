@@ -22,7 +22,8 @@ class QwixxGame {
       this.createPlayer('Player 1'),
       this.createPlayer('Player 2')
     ];
-    this.currentPlayer = 0;
+    this.currentPlayer = 0;       // Who rolled the dice (active player)
+    this.viewingPlayer = 0;       // Who is currently viewing the screen
     this.dice = { white1: 1, white2: 1, red: 1, yellow: 1, green: 1, blue: 1 };
     this.lockedRows = [];
     this.phase = 'rolling'; // rolling, marking, gameOver
@@ -33,6 +34,21 @@ class QwixxGame {
       activeDone: false,
       nonActiveDone: false
     };
+  }
+
+  // Get the player currently viewing the screen
+  getViewingPlayer() {
+    return this.players[this.viewingPlayer];
+  }
+
+  // Check if viewing player is the active player
+  isViewingPlayerActive() {
+    return this.viewingPlayer === this.currentPlayer;
+  }
+
+  // Switch to viewing the other player's board
+  switchViewingPlayer() {
+    this.viewingPlayer = 1 - this.viewingPlayer;
   }
 
   createPlayer(name) {
@@ -182,16 +198,16 @@ class QwixxGame {
 
     // Check if any matching option is available based on current turn state
     if (isActive) {
-      const hasColoredCombo = matchingOptions.some(opt => !opt.isWhiteOnly);
-      const hasWhiteOnly = matchingOptions.some(opt => opt.isWhiteOnly);
+      const availableViaWhite = matchingOptions.some(opt => opt.isWhiteOnly);
+      const availableViaColored = matchingOptions.some(opt => !opt.isWhiteOnly);
 
-      // Prioritize colored combo - if available via colored and colored slot is open, allow it
-      if (hasColoredCombo && this.turnState.activeColorMark === null) {
+      // Prioritize white slot - this preserves colored combo for numbers that ONLY have colored option
+      if (availableViaWhite && this.turnState.activeWhiteMark === null) {
         return true;
       }
 
-      // Fall back to white-only if colored not available or colored slot taken
-      if (hasWhiteOnly && this.turnState.activeWhiteMark === null && this.turnState.activeColorMark === null) {
+      // Fall back to colored slot if white not available or white slot taken
+      if (availableViaColored && this.turnState.activeColorMark === null) {
         return true;
       }
 
@@ -212,27 +228,61 @@ class QwixxGame {
     return this.isMarkedThisTurn(playerIndex, color, value);
   }
 
+  // Check if marking this number requires a choice between white and colored slots
+  // Returns { needsChoice, canUseWhite, canUseColored } for active player
+  getMarkChoice(playerIndex, color, value) {
+    const isActive = this.isActivePlayer(playerIndex);
+    if (!isActive) {
+      return { needsChoice: false, canUseWhite: false, canUseColored: false };
+    }
+
+    const options = this.getActivePlayerOptions();
+    const matchingOptions = options.filter(opt => opt.color === color && opt.value === value);
+
+    const canUseWhite = matchingOptions.some(opt => opt.isWhiteOnly) &&
+                        this.turnState.activeWhiteMark === null;
+    const canUseColored = matchingOptions.some(opt => !opt.isWhiteOnly) &&
+                          this.turnState.activeColorMark === null;
+
+    return {
+      needsChoice: canUseWhite && canUseColored,
+      canUseWhite,
+      canUseColored
+    };
+  }
+
   // Mark a number
-  mark(playerIndex, color, value) {
+  // forceSlot: 'white' | 'colored' | null - if provided, use that slot; otherwise auto-decide
+  mark(playerIndex, color, value, forceSlot = null) {
     if (!this.canMark(playerIndex, color, value)) return false;
 
     const player = this.players[playerIndex];
     const config = ROW_CONFIG[color];
     const isActive = this.isActivePlayer(playerIndex);
 
-    // Determine if this is a white-only option or colored combo
-    // Prioritize colored combo when both are available (more specific match)
+    // Determine which slot to use
     const options = isActive ? this.getActivePlayerOptions() : this.getNonActivePlayerOptions();
     const matchingOptions = options.filter(opt => opt.color === color && opt.value === value);
-    const hasColoredCombo = matchingOptions.some(opt => !opt.isWhiteOnly);
-    const isWhiteOnly = !hasColoredCombo;
+    const availableViaWhite = matchingOptions.some(opt => opt.isWhiteOnly);
+    const availableViaColored = matchingOptions.some(opt => !opt.isWhiteOnly);
 
     // Make the mark
     player.rows[color].push(value);
 
     // Update turn state
     if (isActive) {
-      if (isWhiteOnly) {
+      let useWhiteSlot;
+
+      if (forceSlot === 'white') {
+        useWhiteSlot = true;
+      } else if (forceSlot === 'colored') {
+        useWhiteSlot = false;
+      } else {
+        // Auto-decide: use white slot first if available
+        useWhiteSlot = availableViaWhite && this.turnState.activeWhiteMark === null;
+      }
+
+      if (useWhiteSlot) {
         this.turnState.activeWhiteMark = { color, value };
       } else {
         this.turnState.activeColorMark = { color, value };
@@ -241,13 +291,8 @@ class QwixxGame {
       this.turnState.nonActiveMark = { color, value };
     }
 
-    // Check for lock
-    if (value === config.lockNumber && player.rows[color].length >= MARKS_TO_LOCK) {
-      this.lockedRows.push(color);
-    }
-
-    // Check for game over
-    this.checkGameOver();
+    // Note: Lock and game-over checks are deferred until both players are done
+    // This is handled in finalizeTurn()
 
     return true;
   }
@@ -320,12 +365,41 @@ class QwixxGame {
       this.turnState.nonActiveDone = true;
     }
 
-    // Check if both players are done
-    if (this.turnState.activeDone && this.turnState.nonActiveDone) {
-      this.endTurn();
+    // Note: finalizeTurn() must be called by UI after both players are done
+  }
+
+  // Check if both players have completed their actions for this turn
+  isTurnComplete() {
+    return this.turnState.activeDone && this.turnState.nonActiveDone;
+  }
+
+  // Called after both players are done - applies locks, checks game over, advances turn
+  finalizeTurn() {
+    if (!this.isTurnComplete()) return false;
+
+    // Check for locks - look at all players' rows for lock numbers
+    for (const player of this.players) {
+      for (const color of ['red', 'yellow', 'green', 'blue']) {
+        if (this.lockedRows.includes(color)) continue; // Already locked
+
+        const config = ROW_CONFIG[color];
+        const row = player.rows[color];
+
+        // Lock if player has the lock number and enough marks
+        if (row.includes(config.lockNumber) && row.length >= MARKS_TO_LOCK) {
+          this.lockedRows.push(color);
+        }
+      }
     }
 
-    this.checkGameOver();
+    // Check for game over
+    if (this.checkGameOver()) {
+      return true;
+    }
+
+    // Advance to next turn
+    this.endTurn();
+    return true;
   }
 
   endTurn() {
@@ -333,6 +407,7 @@ class QwixxGame {
 
     // Switch to next player
     this.currentPlayer = 1 - this.currentPlayer;
+    this.viewingPlayer = this.currentPlayer; // New active player views first
     this.phase = 'rolling';
     this.turnState = {
       activeWhiteMark: null,
@@ -410,6 +485,7 @@ class QwixxGame {
     return {
       players: this.players,
       currentPlayer: this.currentPlayer,
+      viewingPlayer: this.viewingPlayer,
       dice: this.dice,
       lockedRows: this.lockedRows,
       phase: this.phase,
@@ -421,6 +497,7 @@ class QwixxGame {
   fromJSON(data) {
     this.players = data.players;
     this.currentPlayer = data.currentPlayer;
+    this.viewingPlayer = data.viewingPlayer ?? data.currentPlayer; // Fallback for old saves
     this.dice = data.dice;
     this.lockedRows = data.lockedRows;
     this.phase = data.phase;

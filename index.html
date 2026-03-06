@@ -44,6 +44,9 @@
 
     <!-- Game Screen -->
     <div id="game-screen" class="screen hidden">
+      <!-- Menu Button (top corner) -->
+      <button id="menu-btn" class="btn btn-menu">Menu</button>
+
       <!-- Dice Area -->
       <div id="dice-area">
         <div id="dice-container">
@@ -64,11 +67,11 @@
         <button id="roll-btn" class="btn btn-roll">Roll Dice</button>
       </div>
 
-      <!-- Player Sheets -->
-      <div id="players-container">
-        <div class="player-sheet" id="player1-sheet" data-player="0">
+      <!-- Current Player Sheet (single view) -->
+      <div id="current-player-container">
+        <div class="player-sheet" id="current-player-sheet">
           <div class="player-header">
-            <span class="player-name">Player 1</span>
+            <span class="player-name">Player</span>
             <span class="player-status"></span>
             <span class="player-score">0</span>
           </div>
@@ -82,32 +85,72 @@
             <span class="penalties-label">Penalties:</span>
             <div class="penalty-boxes"></div>
           </div>
-          <button class="btn btn-done">Done</button>
-        </div>
-
-        <div class="player-sheet" id="player2-sheet" data-player="1">
-          <div class="player-header">
-            <span class="player-name">Player 2</span>
-            <span class="player-status"></span>
-            <span class="player-score">0</span>
+          <div class="player-actions">
+            <button id="peek-btn" class="btn btn-peek">View Opponent</button>
+            <button id="done-btn" class="btn btn-done">Done</button>
           </div>
-          <div class="score-rows">
-            <div class="score-row red" data-color="red"></div>
-            <div class="score-row yellow" data-color="yellow"></div>
-            <div class="score-row green" data-color="green"></div>
-            <div class="score-row blue" data-color="blue"></div>
-          </div>
-          <div class="penalties-row">
-            <span class="penalties-label">Penalties:</span>
-            <div class="penalty-boxes"></div>
-          </div>
-          <button class="btn btn-done">Done</button>
         </div>
       </div>
 
-      <!-- Game Controls -->
-      <div id="game-controls">
-        <button id="menu-btn" class="btn btn-secondary">New Game</button>
+    </div>
+
+    <!-- Confirm New Game Modal -->
+    <div id="confirm-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Start New Game?</h2>
+        <p>Your current game progress will be lost.</p>
+        <div class="modal-buttons">
+          <button id="confirm-new-btn" class="btn btn-primary">New Game</button>
+          <button id="cancel-new-btn" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transition Screen -->
+    <div id="transition-screen" class="screen hidden">
+      <div class="transition-content">
+        <h2 id="transition-message">Pass to Player</h2>
+        <button id="ready-btn" class="btn btn-primary">Ready</button>
+      </div>
+    </div>
+
+    <!-- Peek Modal -->
+    <div id="peek-modal" class="modal hidden">
+      <div class="modal-content peek-content">
+        <h3 id="peek-player-name">Opponent's Board</h3>
+        <div class="peek-sheet">
+          <div class="score-rows" id="peek-score-rows">
+            <div class="score-row red" data-color="red"></div>
+            <div class="score-row yellow" data-color="yellow"></div>
+            <div class="score-row green" data-color="green"></div>
+            <div class="score-row blue" data-color="blue"></div>
+          </div>
+          <div class="penalties-row">
+            <span class="penalties-label">Penalties:</span>
+            <div class="penalty-boxes" id="peek-penalties"></div>
+          </div>
+          <div class="peek-score">Score: <span id="peek-score">0</span></div>
+        </div>
+        <button id="close-peek-btn" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+
+    <!-- Slot Choice Modal -->
+    <div id="choice-modal" class="modal hidden">
+      <div class="modal-content choice-content">
+        <h3>Which dice to use?</h3>
+        <p id="choice-description">This number is available via both methods.</p>
+        <div class="choice-buttons">
+          <button id="choice-white-btn" class="btn choice-btn choice-white">
+            <span class="choice-label">White Dice</span>
+            <span class="choice-value" id="choice-white-value"></span>
+          </button>
+          <button id="choice-colored-btn" class="btn choice-btn choice-colored">
+            <span class="choice-label">Colored Dice</span>
+            <span class="choice-value" id="choice-colored-value"></span>
+          </button>
+        </div>
+        <button id="choice-cancel-btn" class="btn btn-secondary">Cancel</button>
       </div>
     </div>
 
