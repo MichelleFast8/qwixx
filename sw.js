@@ -1,15 +1,15 @@
-const CACHE_NAME = 'qwixx-v11';
+const CACHE_NAME = 'qwixx-v12';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/js/game.js',
-  '/js/dice.js',
-  '/js/ui.js',
-  '/manifest.json',
-  '/assets/icons/icon-192.svg',
-  '/assets/icons/icon-512.svg'
+  './',
+  './index.html',
+  './css/styles.css',
+  './js/app.js',
+  './js/game.js',
+  './js/dice.js',
+  './js/ui.js',
+  './manifest.json',
+  './assets/icons/icon-192.svg',
+  './assets/icons/icon-512.svg'
 ];
 
 self.addEventListener('install', (event) => {

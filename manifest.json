@@ -2,10 +2,12 @@
   "name": "Qwixx",
   "short_name": "Qwixx",
   "description": "2-player Qwixx dice game",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f0f1a",
   "theme_color": "#9c88ff",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "assets/icons/icon-192.svg",
